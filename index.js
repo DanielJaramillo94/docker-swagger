@@ -66,48 +66,58 @@ let User = mongoose.model('Users', userSchema)
  *        description: A successful response
  */
 app.get("/customers", (req, res) => {
-  let users = User.find({})
+  User.find({})
   .exec((err, users) => {
     if(err)
       res.status(400).send('Oops! Something went wrong!');
     else
       res.status(200).send(users);
   })
-  // res.status(200).send(users);
 });
 
-app.get("/customer-add", (req, res) => {
-  let newUser = User.create({id: 'newId', userName: 'This is my new name', level: 3})
-  res.status(200).send(newUser);
-});
-
-app.post('/book', function(req, res) {
-  var newUser = new User();
-
-  newUser.id = req.body.id;
-  newUser.userName = req.body.userName;
-  newUser.level = req.body.level;
-
-  newUser.save(function(err, user) {
-    if(err) {
-      res.status(400).send('error saving user');
-    } else {
-      console.log(user);
+app.post("/customer", (req, res) => {
+  let newUser = req.body;
+  User.create(newUser, (err, user) => {
+    if(err)
+      res.status(400).send('Oops! Something went wrong!');
+    else
       res.status(201).send(user);
-    }
-  });
+  })
+})
+
+/**
+ * @swagger
+ * /customers:
+ *  delete:
+ *    description: Used to delete a user based on one id
+ *    responses:
+ *      '202':
+ *        description: A successful delete
+ *      '400':
+ *        description: An error ocurred
+ */
+app.delete("/customer", (req, res) => {
+  // {id: "newId"}
+  let filterId = req.body;
+  User.deleteOne(filterId, (err, user) => {
+    if(err)
+      res.status(400).send('Oops! Something went wrong!');
+    else
+      res.status(202).send(user);
+  })
 });
+
 
 /**
  * @swagger
  * /customers:
  *    put:
- *      description: Use to return all customers
+ *      description: Use to modify an existing user
  *    parameters:
- *      - name: customer
- *        in: query
- *        description: Name of our customer
- *        required: false
+ *      - name: id
+ *        in: body
+ *        description: id of user
+ *        required: true
  *        schema:
  *          type: string
  *          format: string
@@ -115,8 +125,15 @@ app.post('/book', function(req, res) {
  *      '201':
  *        description: Successfully created user
  */
-app.put("/customer", (req, res) => {
-  res.status(200).send("Successfully updated customer");
+app.put("/customer/:id", (req, res) => {
+  let id = req.params.id;
+  let newUser = req.body;
+  User.findOneAndUpdate({id}, newUser, (err, user) => {
+    if(err)
+      res.status(400).send('Oops! Something went wrong!');
+    else
+      res.status(200).send(user);
+  })
 });
 
 app.listen(port, () => {
