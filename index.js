@@ -7,18 +7,18 @@ var bodyParser = require('body-parser');
 const app = express()
 const port = 8081
 
-const db_link = "mongodb://mongo:27017/helloworlddb";
+// const db_link = "mongodb://mongo:27017/helloworlddb";
 
-const options = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-};
-mongoose.connect(db_link, options).then( function() {
-  console.log('MongoDB is connected');
-})
-.catch( function(err) {
-  console.log(err);
-});
+// const options = {
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true
+// };
+// mongoose.connect(db_link, options).then( function() {
+//   console.log('MongoDB is connected');
+// })
+// .catch( function(err) {
+//   console.log(err);
+// });
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({
@@ -64,6 +64,10 @@ let User = mongoose.model('Users', userSchema)
  *    responses:
  *      '200':
  *        description: A successful response
+ *        response: all created customers on db
+ *      '400':
+ *        description: Something went wrong
+ *        response: an error message
  */
 app.get("/customers", (req, res) => {
   User.find({})
@@ -75,6 +79,30 @@ app.get("/customers", (req, res) => {
   })
 });
 
+/**
+ * @swagger
+ * /customers:
+ *  post:
+ *    description: Use to request all customers
+ *    type: object
+ *    properties:
+ *      id:
+ *        type: string
+ *        example: stringID
+ *      userName:
+ *        type: string
+ *        example: Daniel Jaramillo
+ *      level:
+ *        type: integer
+ *        example: 5
+ *    responses:
+ *      '201':
+ *        description: A successful response
+ *        response: all created customers on db
+ *      '400':
+ *        description: Something went wrong
+ *        response: an error message
+ */
 app.post("/customer", (req, res) => {
   let newUser = req.body;
   User.create(newUser, (err, user) => {
@@ -96,10 +124,9 @@ app.post("/customer", (req, res) => {
  *      '400':
  *        description: An error ocurred
  */
-app.delete("/customer", (req, res) => {
-  // {id: "newId"}
-  let filterId = req.body;
-  User.deleteOne(filterId, (err, user) => {
+app.delete("/customer/:id", (req, res) => {
+  let id = req.params.id;
+  User.deleteOne({id}, (err, user) => {
     if(err)
       res.status(400).send('Oops! Something went wrong!');
     else
